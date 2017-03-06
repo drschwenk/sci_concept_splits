@@ -51,6 +51,23 @@
 <script src="//d3js.org/d3.v3.min.js"></script>
 <script>
 
+var color_map = new Object();
+color_map["train"] = "#8c9296";
+color_map["test"]= "#e77423";
+color_map["val"]= "#3fb62c";
+function get_rgb_value(k) {
+  return color_map[k];
+}
+function convertHex(hex_color, opacity){
+  var hex_color = hex_color.replace('#','');
+  var red = parseInt(hex_color.substring(0,2), 16);
+  var green = parseInt(hex_color.substring(2,4), 16);
+  var blue = parseInt(hex_color.substring(4,6), 16);
+
+var color_with_trans = 'rgba('+red+','+green+','+blue+','+opacity+')';
+  return color_with_trans;
+}
+
 var diameter = 1200,
     radius = diameter / 2,
     innerRadius = radius - 180;
@@ -86,13 +103,15 @@ d3.json("lesson_connections.json", function(error, classes) {
   link = link
       .data(bundle(links))
     .enter().append("path")
-      .each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
+      .each(function(d) { d.source = d[0], d.target = d[d.length - 1];})
       .attr("class", "link")
-      .attr("d", line);
+      .attr("d", line)
+	  .style("stroke-opacity", 0.2);
 
   node = node
       .data(nodes.filter(function(n) { return !n.children; }))
     .enter().append("text")
+	  .style("fill", function (d) { return get_rgb_value(d.split);})
       .attr("class", "node")
       .attr("dy", ".31em")
       .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 8) + ",0)" + (d.x < 180 ? "" : "rotate(180)"); })
@@ -141,6 +160,7 @@ function packageHierarchy(classes) {
         node.parent = find(name.substring(0, i = name.lastIndexOf(".")));
         node.parent.children.push(node);
         node.key = name.substring(i + 1);
+		node.split = node.parent.name;
       }
     }
     return node;
